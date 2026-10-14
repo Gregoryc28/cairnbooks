@@ -55,14 +55,14 @@
   - **Action**: Using `lxml.html` / `lxml.etree`, wrap the first mention of each approved entity per chapter in `<a id="ref-..." href="#note-..." epub:type="noteref" role="doc-noteref" class="cairn-anchor">` and append `<section epub:type="footnotes"><aside id="note-..." epub:type="footnote" role="doc-footnote">...<a href="#ref-..." role="doc-backlink">↩</a></aside></section>` plus subtle e-ink CSS.
   - **Verification Criterion**: Run `pytest engine/tests/test_dom_injector.py -v` asserting valid XML output, exact ID/href bidirectional matching, and presence of `epub:type="noteref"` and `epub:type="footnote"`.
 
-- `[-]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
+- `[x]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
   - **Action**: Wire together `epub_parser`, `lore_ledger`, `jev_client`, `synopsis_client`, `dom_injector`, and `kfx_compiler.py` (`ebook-convert`). Expose via `engine/cli.py` with `bake` and `inspect` commands supporting `--test-mode` and `--refresh-jev`.
   - **Verification Criterion**: Run `python engine/cli.py bake engine/tests/fixtures/sample_novel.epub --test-mode` and verify a valid enhanced `.epub` is written to `engine/data/outputs/`.
 
 ---
 
 ## Phase 5: FastAPI Backend & Real-Time SSE Streaming
-- `[ ]` **Task 5.1: Build FastAPI Endpoints & SSE Stream (`engine/api/main.py`, `engine/api/routes_books.py`)**
+- `[-]` **Task 5.1: Build FastAPI Endpoints & SSE Stream (`engine/api/main.py`, `engine/api/routes_books.py`)**
   - **Action**: Implement `POST /api/v1/books/upload`, `GET /api/v1/books/{job_id}/stream` (SSE emitting `sentence_chunk`, `cairn_dropped`, `progress`, and `complete`), `GET /api/v1/books/{job_id}/proof-sheet`, `PATCH /api/v1/books/{job_id}/anchors`, `POST /api/v1/books/{job_id}/bake`, and `GET /api/v1/books/{job_id}/download/{format}`.
   - **Verification Criterion**: Run `pytest engine/tests/test_api.py -v` using FastAPI `TestClient` to upload `sample_novel.epub`, consume the SSE stream, toggle an anchor off, bake the output, and download the resulting `.epub`.
 
