@@ -33,14 +33,14 @@
   - **Action**: Write a fixture generator script that creates `engine/tests/fixtures/sample_novel.epub` (5 chapters where characters appear in Ch. 1, vanish for Ch. 2–3, and return in Ch. 4–5). Implement `epub_parser.py` using `ebooklib` and `BeautifulSoup` to extract linear spine chapters, word counts, and paragraph blocks.
   - **Verification Criterion**: Run `pytest engine/tests/test_epub_parser.py -v` and confirm 5 spine chapters and accurate word counts are extracted from `sample_novel.epub`.
 
-- `[-]` **Task 2.2: Implement Chronological Lore Ledger with Strict Spoiler Cutoff (`engine/core/lore_ledger.py`)**
+- `[x]` **Task 2.2: Implement Chronological Lore Ledger with Strict Spoiler Cutoff (`engine/core/lore_ledger.py`)**
   - **Action**: Build entity extraction and ledger indexing across chapters. Implement `find_candidate_reintroductions(chapter_index, min_page_gap)` ensuring `prior_excerpts` only pulls from `chapter < current_chapter_index`.
   - **Verification Criterion**: Run `pytest engine/tests/test_lore_ledger.py -v` including an explicit unit test asserting that facts from Chapter 5 are never present when querying Chapter 3 or 4.
 
 ---
 
 ## Phase 3: Tier 1 (Jev + OpenRouter Fallback) & Tier 2 (Synopsis) Clients
-- `[ ]` **Task 3.1: Build Tier 1 `JevClient` with OpenRouter Dev Fallback & DiskCache (`engine/clients/jev_client.py`)**
+- `[-]` **Task 3.1: Build Tier 1 `JevClient` with OpenRouter Dev Fallback & DiskCache (`engine/clients/jev_client.py`)**
   - **Action**: Implement `JevClient.evaluate_candidate(candidate, force_eval=False)`. Support `AI_PROVIDER_MODE=openrouter_fallback` (JSON schema response) and `AI_PROVIDER_MODE=jev` (native `/v1/evaluate`), backed by `diskcache` in `JEV_CACHE_DIR` and `MockJevClient` for `--test-mode`.
   - **Verification Criterion**: Run `pytest engine/tests/test_jev_client.py -v` verifying mock mode, OpenRouter payload formatting, Jev native payload formatting, and deterministic cache hits.
 
