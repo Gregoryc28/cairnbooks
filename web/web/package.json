@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "cairnbooks-web": "file:.."
+  }
+}

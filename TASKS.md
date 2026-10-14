@@ -69,11 +69,11 @@
 ---
 
 ## Phase 6: Next.js "Living Risograph" Frontend & Pretext Canvas
-- `[-]` **Task 6.1: Scaffold Next.js App with Risograph Theme & Clerk Auth (`web/`)**
+- `[x]` **Task 6.1: Scaffold Next.js App with Risograph Theme & Clerk Auth (`web/`)**
   - **Action**: Initialize `web/` with Next.js App Router, TypeScript, Tailwind CSS configured with the Risograph palette (`#FAF7F0`, `#121316`, `#FF4C38`, `#CEFF00`, `#E6E2D8`), hard-edge `4px 4px 0px #121316` shadows, `Fraunces` + `JetBrains Mono` typography, and Clerk authentication middleware.
   - **Verification Criterion**: Run `npm run build --prefix web && npx --prefix web tsc --noEmit` with zero errors.
 
-- `[ ]` **Task 6.2: Build Stage 1 (`InkDropZone`) & Stage 2 (`PretextCanvas` + `SensitivityDial`)**
+- `[-]` **Task 6.2: Build Stage 1 (`InkDropZone`) & Stage 2 (`PretextCanvas` + `SensitivityDial`)**
   - **Action**: Implement the printing-press drag-and-drop uploader and the HTML5 Canvas component powered by Cheng Lou's **Pretext** (`@chenglou/pretext`) that streams `sentence_chunk` SSE events across the viewport and drops visual coral/lime pins on `cairn_dropped` events.
   - **Verification Criterion**: Run `npm run build --prefix web` and verify smooth 60fps canvas text layout rendering with mock SSE stream data.
 

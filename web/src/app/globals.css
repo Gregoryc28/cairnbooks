@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-newsprint: #FAF7F0;
+  --fg-ink: #121316;
+  --accent-coral: #FF4C38;
+  --accent-lime: #CEFF00;
+  --surface-halftone: #E6E2D8;
+}
+
+body {
+  background-color: var(--bg-newsprint);
+  color: var(--fg-ink);
+  background-image: radial-gradient(#121316 0.55px, transparent 0.55px);
+  background-size: 18px 18px;
+}
+
+@layer components {
+  .riso-card {
+    background-color: var(--bg-newsprint);
+    border: 2px solid var(--fg-ink);
+    box-shadow: 4px 4px 0px var(--fg-ink);
+  }
+
+  .riso-button {
+    border: 2px solid var(--fg-ink);
+    box-shadow: 4px 4px 0px var(--fg-ink);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+
+  .riso-button:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0px var(--fg-ink);
+  }
+
+  .riso-button:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--fg-ink);
+  }
+}
