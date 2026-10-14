@@ -1,12 +1,12 @@
 # PROJECT_SPEC.md — CairnBooks Technical Specification
 
 ## 1. Project Overview & Objectives
-**CairnBooks** (`cairnbooks`) is a full-stack kinetic EPUB 3 & Kindle KFX compiler that eliminates reader confusion in dense fiction and non-fiction without risking web-search spoilers. When a reader uploads an `.epub`, CairnBooks indexes every character, faction, and lore term chronologically, uses a discriminative System One evaluator (TypeSafe AI's **Jev**, with an **OpenRouter** development fallback)[cite: 4, 6] to pinpoint significant entity reintroductions after long absences, synthesizes strictly spoiler-capped 15-word context briefings via an OpenRouter micro-LLM, and injects native EPUB 3 bidirectional footnote popups ("Cairns") directly into the book's DOM.
+**CairnBooks** (`cairnbooks`) is a full-stack kinetic EPUB 3 & Kindle KFX compiler that eliminates reader confusion in dense fiction and non-fiction without risking web-search spoilers. When a reader uploads an `.epub`, CairnBooks indexes every character, faction, and lore term chronologically, uses a discriminative System One evaluator (TypeSafe AI's **Jev**, with an **OpenRouter** development fallback) to pinpoint significant entity reintroductions after long absences, synthesizes strictly spoiler-capped 15-word context briefings via an OpenRouter micro-LLM, and injects native EPUB 3 bidirectional footnote popups ("Cairns") directly into the book's DOM.
 
 ### Core Architectural Pillars
 1. **Chronological Lore Ledger (Zero-Spoiler Guarantee)**: Deterministic entity extraction per chapter that locks knowledge cutoffs strictly prior to the active chapter (`chapters < N`).
 2. **Two-Tier Hybrid AI Pipeline**:
-   - **Tier 1 (Discriminative Filter)**: Evaluates candidate scenes (~1,500–2,500 tokens) against typed schemas (`noul`, `score`, `choice`). Uses OpenRouter fallback during the dev stage and switches to the native TypeSafe Jev API (`/evaluate`) in production via config toggle[cite: 6].
+   - **Tier 1 (Discriminative Filter)**: Evaluates candidate scenes (~1,500–2,500 tokens) against typed schemas (`noul`, `score`, `choice`). Uses OpenRouter fallback during the dev stage and switches to the native TypeSafe Jev API (`/evaluate`) in production via config toggle.
    - **Tier 2 (Bounded Micro-LLM Synthesis)**: Invokes a free-tier OpenRouter model only for the ~25–50 approved anchors per book, summarizing strictly prior excerpts into a `<= 15`-word footnote card.
 3. **Kindle Paperwhite KFX Popup Compatibility**: Injects W3C/IDPF-compliant `epub:type="noteref"` and `<aside epub:type="footnote">` markup and wraps Calibre's `ebook-convert` CLI to output sideload-ready `.kfx` files.
 4. **"Living Risograph" Kinetic Web UI**: Built on Next.js (Vercel), Clerk Auth, DiffUI primitives, and Cheng Lou's **Pretext** canvas engine, which streams book sentences like liquid ink and physically drops anchor pins into place during processing.
@@ -19,20 +19,20 @@
 - **Language**: Python 3.11+
 - **Web Framework**: `fastapi>=0.110.0`, `uvicorn[standard]>=0.29.0`, `sse-starlette>=2.0.0`, `python-multipart>=0.0.9`
 - **EPUB & XML Processing**: `EbookLib>=0.18`, `lxml>=5.1.0`, `beautifulsoup4>=4.12.0`
-- **Core Utilities & Caching** (aligned with prior Jev pipeline)[cite: 1, 6]:
-  - `requests>=2.31.0`[cite: 1]
-  - `pydantic>=2.0.0`[cite: 1]
-  - `typer[all]>=0.9.0`[cite: 1, 2]
-  - `rich>=13.0.0`[cite: 1, 2]
-  - `python-dotenv>=1.0.0`[cite: 1, 6]
-  - `diskcache>=5.6.0`[cite: 1]
-  - `pytest>=7.4.0`[cite: 1]
+- **Core Utilities & Caching** (aligned with prior Jev pipeline):
+  - `requests>=2.31.0`
+  - `pydantic>=2.0.0`
+  - `typer[all]>=0.9.0`
+  - `rich>=13.0.0`
+  - `python-dotenv>=1.0.0`
+  - `diskcache>=5.6.0`
+  - `pytest>=7.4.0`
 - **External CLI Tooling**: Calibre (`ebook-convert`) + KFX Output plugin + Kindle Previewer 3 (for `.kfx` compilation).
 
 ### Frontend (`web/`)
 - **Framework**: Next.js 15 (App Router, TypeScript 5.x), React 19
 - **Deployment**: Vercel
-- **Authentication & Billing**: `@clerk/nextjs` (Auth + user metadata credit tracking) + Stripe Webhooks
+- **Authentication & Billing**: `@clerk/nextjs` (Auth + user metadata credit tracking) + Clerk Webhooks
 - **Styling & Components**: Tailwind CSS 3.4+, DiffUI primitives customized to the Risograph broadsheet theme (`Fraunces` display serif + `JetBrains Mono` monospace)
 - **Kinetic Typography Engine**: `@chenglou/pretext` (HTML5 Canvas zero-DOM text measurement and streaming layout)
 
@@ -49,10 +49,10 @@ cairnbooks/
 ├── .gitignore
 ├── engine/
 │   ├── __init__.py
-│   ├── config.py                  # Env loader, paths, thresholds, API URLs[cite: 6]
-│   ├── cli.py                     # Typer CLI (bake, inspect, convert-kfx)[cite: 2]
-│   ├── conftest.py                # Pytest sys.path bootstrapper[cite: 7]
-│   ├── requirements.txt           # Python dependencies[cite: 1]
+│   ├── config.py                  # Env loader, paths, thresholds, API URLs
+│   ├── cli.py                     # Typer CLI (bake, inspect, convert-kfx)
+│   ├── conftest.py                # Pytest sys.path bootstrapper
+│   ├── requirements.txt           # Python dependencies
 │   ├── api/
 │   │   ├── __init__.py
 │   │   ├── main.py                # FastAPI entrypoint & CORS config
@@ -72,13 +72,13 @@ cairnbooks/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   └── schemas.py             # Pydantic v2 models for Ledger, Jev, Footnotes, SSE
-│   ├── data/                      # Git-ignored runtime storage[cite: 6]
+│   ├── data/                      # Git-ignored runtime storage
 │   │   ├── jobs/                  # Per-upload unpacked EPUB workspaces
 │   │   ├── outputs/               # Compiled .epub and .kfx artifacts
-│   │   └── jev_cache/             # diskcache persistent cache directory[cite: 6]
+│   │   └── jev_cache/             # diskcache persistent cache directory
 │   └── tests/
 │       ├── __init__.py
-│       ├── mock_clients.py        # Deterministic MockJevClient & MockSynopsisClient[cite: 2]
+│       ├── mock_clients.py        # Deterministic MockJevClient & MockSynopsisClient
 │       ├── test_epub_parser.py
 │       ├── test_lore_ledger.py
 │       ├── test_jev_client.py
@@ -96,7 +96,7 @@ cairnbooks/
         │   ├── layout.tsx         # Fonts (Fraunces, JetBrains Mono), ClerkProvider
         │   ├── globals.css        # Risograph palette variables & hard-shadow utilities
         │   ├── page.tsx           # 4-Stage Kinetic Compiler Workspace
-        │   └── api/webhooks/      # Clerk/Stripe credit sync routes
+        │   └── api/webhooks/      # Clerk credit sync routes
         ├── components/
         │   ├── InkDropZone.tsx    # Stage 1: Printing-plate drag-and-drop uploader
         │   ├── PretextCanvas.tsx  # Stage 2: Cheng Lou Pretext fluid text stream + pin drop
@@ -252,12 +252,12 @@ class BakeJobState(BaseModel):
    - **Response**: Binary file stream (`application/epub+zip` or `application/octet-stream`).
 
 ### 5.2 Tier 1 Jev Client & OpenRouter Fallback Contract (`engine/clients/jev_client.py`)
-Following the pattern from your prior project[cite: 6]:
+Following the pattern from your prior project:
 - **Primary Mode (`AI_PROVIDER_MODE=jev` and `JEV_API_KEY` present)**:
-  POSTs to `{JEV_BASE_URL}/v1/evaluate`[cite: 6] with `state` and typed `questions` (`is_significant_reintroduction`: `noul`, `requires_context_refresher`: `score` [0, 5], `current_alignment`: `choice`).
+  POSTs to `{JEV_BASE_URL}/v1/evaluate` with `state` and typed `questions` (`is_significant_reintroduction`: `noul`, `requires_context_refresher`: `score` [0, 5], `current_alignment`: `choice`).
 - **Fallback Mode (`AI_PROVIDER_MODE=openrouter_fallback` or missing `JEV_API_KEY`)**:
-  POSTs to `{OPENROUTER_BASE_URL}/v1/chat/completions`[cite: 4, 6] using `OPENROUTER_FALLBACK_MODEL` with `response_format={"type": "json_object"}` enforcing the exact `JevEvaluationResult` schema.
-- **Caching**: SHA-256 hash of `(entity_slug, chapter_index, current_scene_text, schema_version)` stored in `diskcache.Cache(JEV_CACHE_DIR)`[cite: 1, 6]. Bypassed when `force_eval=True` (`--refresh-jev`)[cite: 2].
+  POSTs to `{OPENROUTER_BASE_URL}/v1/chat/completions` using `OPENROUTER_FALLBACK_MODEL` with `response_format={"type": "json_object"}` enforcing the exact `JevEvaluationResult` schema.
+- **Caching**: SHA-256 hash of `(entity_slug, chapter_index, current_scene_text, schema_version)` stored in `diskcache.Cache(JEV_CACHE_DIR)`. Bypassed when `force_eval=True` (`--refresh-jev`).
 
 ---
 
@@ -292,6 +292,4 @@ CALIBRE_EBOOK_CONVERT_BIN=ebook-convert
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_key_here
 CLERK_SECRET_KEY=sk_test_your_clerk_key_here
-STRIPE_SECRET_KEY=sk_test_your_stripe_key_here
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 ```
