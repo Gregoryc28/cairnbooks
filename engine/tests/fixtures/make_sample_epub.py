@@ -10,7 +10,7 @@ Chapter Narrative Arc:
 
 from pathlib import Path
 
-from ebooklib import epub
+from ebooklib import epub  # type: ignore[import-untyped]
 
 
 def generate_sample_novel_epub(output_path: Path) -> Path:

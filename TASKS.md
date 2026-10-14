@@ -40,22 +40,22 @@
 ---
 
 ## Phase 3: Tier 1 (Jev + OpenRouter Fallback) & Tier 2 (Synopsis) Clients
-- `[-]` **Task 3.1: Build Tier 1 `JevClient` with OpenRouter Dev Fallback & DiskCache (`engine/clients/jev_client.py`)**
+- `[x]` **Task 3.1: Build Tier 1 `JevClient` with OpenRouter Dev Fallback & DiskCache (`engine/clients/jev_client.py`)**
   - **Action**: Implement `JevClient.evaluate_candidate(candidate, force_eval=False)`. Support `AI_PROVIDER_MODE=openrouter_fallback` (JSON schema response) and `AI_PROVIDER_MODE=jev` (native `/v1/evaluate`), backed by `diskcache` in `JEV_CACHE_DIR` and `MockJevClient` for `--test-mode`.
   - **Verification Criterion**: Run `pytest engine/tests/test_jev_client.py -v` verifying mock mode, OpenRouter payload formatting, Jev native payload formatting, and deterministic cache hits.
 
-- `[ ]` **Task 3.2: Build Tier 2 `SynopsisClient` for 15-Word Footnote Generation (`engine/clients/synopsis_client.py`)**
+- `[x]` **Task 3.2: Build Tier 2 `SynopsisClient` for 15-Word Footnote Generation (`engine/clients/synopsis_client.py`)**
   - **Action**: Implement `SynopsisClient.generate_synopsis(entity_name, prior_excerpts, last_seen_chapter, pages_absent)` calling `OPENROUTER_SYNOPSIS_MODEL` with a strict `<= 15`-word constraint and deterministic fallback template if the API is unreachable.
   - **Verification Criterion**: Run `pytest engine/tests/test_synopsis_client.py -v` confirming word-count enforcement (`<= 15` words) and zero-spoiler prompt construction.
 
 ---
 
 ## Phase 4: Bidirectional EPUB 3 DOM Injector & Calibre KFX Compiler
-- `[ ]` **Task 4.1: Implement Bidirectional EPUB 3 Footnote Injector (`engine/core/dom_injector.py`)**
+- `[x]` **Task 4.1: Implement Bidirectional EPUB 3 Footnote Injector (`engine/core/dom_injector.py`)**
   - **Action**: Using `lxml.html` / `lxml.etree`, wrap the first mention of each approved entity per chapter in `<a id="ref-..." href="#note-..." epub:type="noteref" role="doc-noteref" class="cairn-anchor">` and append `<section epub:type="footnotes"><aside id="note-..." epub:type="footnote" role="doc-footnote">...<a href="#ref-..." role="doc-backlink">↩</a></aside></section>` plus subtle e-ink CSS.
   - **Verification Criterion**: Run `pytest engine/tests/test_dom_injector.py -v` asserting valid XML output, exact ID/href bidirectional matching, and presence of `epub:type="noteref"` and `epub:type="footnote"`.
 
-- `[ ]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
+- `[-]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
   - **Action**: Wire together `epub_parser`, `lore_ledger`, `jev_client`, `synopsis_client`, `dom_injector`, and `kfx_compiler.py` (`ebook-convert`). Expose via `engine/cli.py` with `bake` and `inspect` commands supporting `--test-mode` and `--refresh-jev`.
   - **Verification Criterion**: Run `python engine/cli.py bake engine/tests/fixtures/sample_novel.epub --test-mode` and verify a valid enhanced `.epub` is written to `engine/data/outputs/`.
 

@@ -11,9 +11,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import ebooklib
+import ebooklib  # type: ignore[import-untyped]
 from bs4 import BeautifulSoup
-from ebooklib import epub
+from ebooklib import epub  # type: ignore[import-untyped]
 
 from engine.config import WORDS_PER_PAGE
 
