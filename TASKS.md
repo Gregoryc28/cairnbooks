@@ -18,22 +18,22 @@
 ---
 
 ## Phase 1: Repository Scaffolding & Configuration
-- `[-]` **Task 1.1: Initialize Backend Directory, `config.py`, and `.env.example`**
+- `[x]` **Task 1.1: Initialize Backend Directory, `config.py`, and `.env.example`**
   - **Action**: Create `engine/` package structure, `engine/requirements.txt`, `engine/conftest.py`, `.env.example`, and `engine/config.py` loading environment variables, thresholds (`JEV_REINTRO_PROB_THRESHOLD = 0.70`, `JEV_REFRESHER_SCORE_MIN = 3`, `DEFAULT_MIN_PAGE_GAP = 30`), and auto-creating `data/jobs`, `data/outputs`, and `data/jev_cache` directories.
   - **Verification Criterion**: Run `python -c "import engine.config as c; assert c.JEV_CACHE_DIR.exists(); print('Config OK')"` and confirm exit code `0`.
 
-- `[ ]` **Task 1.2: Define Core Pydantic v2 Schemas (`engine/models/schemas.py`)**
+- `[x]` **Task 1.2: Define Core Pydantic v2 Schemas (`engine/models/schemas.py`)**
   - **Action**: Implement `AlignmentChoice`, `EntityCategory`, `EntityMention`, `LoreEntity`, `CandidateReintroduction`, `JevEvaluationResult`, `CairnFootnote`, `JobPhase`, and `BakeJobState`.
   - **Verification Criterion**: Run `pytest engine/tests/test_schemas.py -v` verifying validation constraints (e.g., `is_significant_reintroduction` bounded `[0.0, 1.0]`, `requires_context_refresher` bounded `[0, 5]`).
 
 ---
 
 ## Phase 2: EPUB Parser & Temporal Lore Ledger Engine
-- `[ ]` **Task 2.1: Create Synthetic Multi-Chapter Test EPUB Fixture & Parser (`engine/core/epub_parser.py`)**
+- `[x]` **Task 2.1: Create Synthetic Multi-Chapter Test EPUB Fixture & Parser (`engine/core/epub_parser.py`)**
   - **Action**: Write a fixture generator script that creates `engine/tests/fixtures/sample_novel.epub` (5 chapters where characters appear in Ch. 1, vanish for Ch. 2–3, and return in Ch. 4–5). Implement `epub_parser.py` using `ebooklib` and `BeautifulSoup` to extract linear spine chapters, word counts, and paragraph blocks.
   - **Verification Criterion**: Run `pytest engine/tests/test_epub_parser.py -v` and confirm 5 spine chapters and accurate word counts are extracted from `sample_novel.epub`.
 
-- `[ ]` **Task 2.2: Implement Chronological Lore Ledger with Strict Spoiler Cutoff (`engine/core/lore_ledger.py`)**
+- `[-]` **Task 2.2: Implement Chronological Lore Ledger with Strict Spoiler Cutoff (`engine/core/lore_ledger.py`)**
   - **Action**: Build entity extraction and ledger indexing across chapters. Implement `find_candidate_reintroductions(chapter_index, min_page_gap)` ensuring `prior_excerpts` only pulls from `chapter < current_chapter_index`.
   - **Verification Criterion**: Run `pytest engine/tests/test_lore_ledger.py -v` including an explicit unit test asserting that facts from Chapter 5 are never present when querying Chapter 3 or 4.
 
