@@ -62,14 +62,14 @@
 ---
 
 ## Phase 5: FastAPI Backend & Real-Time SSE Streaming
-- `[-]` **Task 5.1: Build FastAPI Endpoints & SSE Stream (`engine/api/main.py`, `engine/api/routes_books.py`)**
+- `[x]` **Task 5.1: Build FastAPI Endpoints & SSE Stream (`engine/api/main.py`, `engine/api/routes_books.py`)**
   - **Action**: Implement `POST /api/v1/books/upload`, `GET /api/v1/books/{job_id}/stream` (SSE emitting `sentence_chunk`, `cairn_dropped`, `progress`, and `complete`), `GET /api/v1/books/{job_id}/proof-sheet`, `PATCH /api/v1/books/{job_id}/anchors`, `POST /api/v1/books/{job_id}/bake`, and `GET /api/v1/books/{job_id}/download/{format}`.
   - **Verification Criterion**: Run `pytest engine/tests/test_api.py -v` using FastAPI `TestClient` to upload `sample_novel.epub`, consume the SSE stream, toggle an anchor off, bake the output, and download the resulting `.epub`.
 
 ---
 
 ## Phase 6: Next.js "Living Risograph" Frontend & Pretext Canvas
-- `[ ]` **Task 6.1: Scaffold Next.js App with Risograph Theme & Clerk Auth (`web/`)**
+- `[-]` **Task 6.1: Scaffold Next.js App with Risograph Theme & Clerk Auth (`web/`)**
   - **Action**: Initialize `web/` with Next.js App Router, TypeScript, Tailwind CSS configured with the Risograph palette (`#FAF7F0`, `#121316`, `#FF4C38`, `#CEFF00`, `#E6E2D8`), hard-edge `4px 4px 0px #121316` shadows, `Fraunces` + `JetBrains Mono` typography, and Clerk authentication middleware.
   - **Verification Criterion**: Run `npm run build --prefix web && npx --prefix web tsc --noEmit` with zero errors.
 
