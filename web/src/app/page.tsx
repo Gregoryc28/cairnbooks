@@ -1,12 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
+import { BakeExporter } from "@/components/BakeExporter";
 import { InkDropZone } from "@/components/InkDropZone";
+import { KindleModalPreview } from "@/components/KindleModalPreview";
 import { PretextCanvas } from "@/components/PretextCanvas";
+import { ProofRibbon } from "@/components/ProofRibbon";
 import { SensitivityDial } from "@/components/SensitivityDial";
-import { subscribeToScanStream, uploadBook } from "@/lib/api";
+import {
+  bakeBook,
+  subscribeToScanStream,
+  updateDisabledAnchors,
+  uploadBook,
+} from "@/lib/api";
 import type {
   BakeJobState,
+  BakeResponse,
   CairnFootnote,
   ScanProgressEvent,
   SentenceChunkEvent,
@@ -99,6 +108,7 @@ export default function HomePage() {
   const [jobState, setJobState] = useState<BakeJobState | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [isBaking, setIsBaking] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sentenceChunks, setSentenceChunks] = useState<SentenceChunkEvent[]>(
     []
@@ -115,6 +125,7 @@ export default function HomePage() {
     setSentenceChunks([]);
     setDroppedCairns([]);
     setProgress(null);
+    setSelectedCairn(null);
 
     try {
       const createdJob = await uploadBook(file, minPageGap);
@@ -128,7 +139,7 @@ export default function HomePage() {
         },
         onCairnDropped: (footnote) => {
           setDroppedCairns((prev) => [...prev, footnote]);
-          setSelectedCairn(footnote);
+          setSelectedCairn((prev) => prev ?? footnote);
         },
         onProgress: (prog) => {
           setProgress(prog);
@@ -157,6 +168,7 @@ export default function HomePage() {
 
   const handleRunSyntheticDemo = () => {
     setErrorMessage(null);
+    setJobState(null);
     setSentenceChunks([]);
     setDroppedCairns([]);
     setIsScanning(true);
@@ -175,12 +187,74 @@ export default function HomePage() {
           setSelectedCairn(DEMO_CAIRNS[0]);
         } else if (index === 4) {
           setDroppedCairns(DEMO_CAIRNS);
-          setSelectedCairn(DEMO_CAIRNS[1]);
+          setSelectedCairn(DEMO_CAIRNS[0]);
           setIsScanning(false);
         }
-      }, index * 260);
+      }, index * 240);
     });
   };
+
+  const handleToggleFootnote = async (anchorId: string) => {
+    const nextList = droppedCairns.map((fn) =>
+      fn.anchor_id === anchorId ? { ...fn, enabled: !fn.enabled } : fn
+    );
+    setDroppedCairns(nextList);
+    setSelectedCairn((prev) =>
+      prev && prev.anchor_id === anchorId
+        ? { ...prev, enabled: !prev.enabled }
+        : prev
+    );
+
+    if (jobState?.job_id) {
+      const disabledIds = nextList
+        .filter((fn) => !fn.enabled)
+        .map((fn) => fn.anchor_id);
+      try {
+        await updateDisabledAnchors(jobState.job_id, disabledIds);
+      } catch (err) {
+        setErrorMessage(
+          err instanceof Error ? err.message : "Failed to sync anchor toggle."
+        );
+      }
+    }
+  };
+
+  const handleEnableAll = async () => {
+    const nextList = droppedCairns.map((fn) => ({ ...fn, enabled: true }));
+    setDroppedCairns(nextList);
+    setSelectedCairn((prev) => (prev ? { ...prev, enabled: true } : null));
+    if (jobState?.job_id) {
+      await updateDisabledAnchors(jobState.job_id, []);
+    }
+  };
+
+  const handleBake = async (
+    compileKfx: boolean
+  ): Promise<BakeResponse | null> => {
+    if (!jobState?.job_id) return null;
+    setIsBaking(true);
+    try {
+      const disabledIds = droppedCairns
+        .filter((fn) => !fn.enabled)
+        .map((fn) => fn.anchor_id);
+      await updateDisabledAnchors(jobState.job_id, disabledIds);
+      const res = await bakeBook(jobState.job_id, compileKfx);
+      setJobState((prev) => (prev ? { ...prev, phase: "COMPLETED" } : prev));
+      return res;
+    } finally {
+      setIsBaking(false);
+    }
+  };
+
+  const activeContextSentence = selectedCairn
+    ? sentenceChunks.find(
+        (c) =>
+          c.chapter_index === selectedCairn.chapter_index &&
+          c.text.includes(selectedCairn.display_name)
+      )?.text
+    : undefined;
+
+  const enabledCount = droppedCairns.filter((fn) => fn.enabled).length;
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-6 py-10">
@@ -216,7 +290,14 @@ export default function HomePage() {
               BOOK: {jobState ? jobState.book_title : "THE SIEGE OF OAKHAVEN"}
             </div>
             <div>
-              PHASE: {jobState ? jobState.phase : isScanning ? "SCANNING" : "READY"}
+              PHASE:{" "}
+              {jobState
+                ? jobState.phase
+                : isScanning
+                  ? "SCANNING"
+                  : droppedCairns.length > 0
+                    ? "PROOF_READY"
+                    : "READY"}
             </div>
           </div>
         </div>
@@ -250,23 +331,35 @@ export default function HomePage() {
         onSelectCairn={setSelectedCairn}
       />
 
-      {selectedCairn && (
-        <div className="riso-card flex flex-wrap items-center justify-between gap-4 bg-halftone p-4 font-mono text-xs">
-          <div>
-            <span className="border border-ink bg-lime px-2 py-0.5 font-bold">
-              ACTIVE CAIRN PIN
-            </span>{" "}
-            <strong className="ml-2 uppercase">
-              {selectedCairn.display_name}
-            </strong>{" "}
-            ({selectedCairn.chapter_title} • {selectedCairn.pages_absent}p
-            absent)
-          </div>
-          <div className="font-serif text-sm italic">
-            &ldquo;{selectedCairn.synopsis_text}&rdquo;
-          </div>
+      {/* Stage 3: Proof Ribbon + Kindle Paperwhite Bottom-Sheet Simulator */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <ProofRibbon
+            footnotes={droppedCairns}
+            selectedAnchorId={selectedCairn?.anchor_id ?? null}
+            onSelectFootnote={setSelectedCairn}
+            onToggleFootnote={handleToggleFootnote}
+            onEnableAll={handleEnableAll}
+            disabled={isScanning || isBaking}
+          />
         </div>
-      )}
+        <div className="lg:col-span-5">
+          <KindleModalPreview
+            footnote={selectedCairn}
+            contextSentence={activeContextSentence}
+            onToggleFootnote={handleToggleFootnote}
+          />
+        </div>
+      </div>
+
+      {/* Stage 4: Final EPUB 3 & KFX Press */}
+      <BakeExporter
+        jobId={jobState?.job_id ?? null}
+        enabledAnchorsCount={enabledCount}
+        totalAnchorsCount={droppedCairns.length}
+        onBake={handleBake}
+        isBaking={isBaking}
+      />
     </main>
   );
 }

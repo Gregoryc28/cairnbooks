@@ -77,13 +77,13 @@
   - **Action**: Implement the printing-press drag-and-drop uploader and the HTML5 Canvas component powered by Cheng Lou's **Pretext** (`@chenglou/pretext`) that streams `sentence_chunk` SSE events across the viewport and drops visual coral/lime pins on `cairn_dropped` events.
   - **Verification Criterion**: Run `npm run build --prefix web` and verify smooth 60fps canvas text layout rendering with mock SSE stream data.
 
-- `[-]` **Task 6.3: Build Stage 3 (`ProofRibbon` + `KindleModalPreview`) & Stage 4 (`BakeExporter`)**
+- `[x]` **Task 6.3: Build Stage 3 (`ProofRibbon` + `KindleModalPreview`) & Stage 4 (`BakeExporter`)**
   - **Action**: Implement the interactive Proof Sheet ribbon allowing users to preview each Cairn inside a simulated Kindle Paperwhite bottom-sheet card, toggle redundant anchors off, and trigger one-click `.epub` / `.kfx` baking and download.
   - **Verification Criterion**: Run `npm run lint --prefix web && npm run build --prefix web` with zero warnings or type errors.
 
 ---
 
 ## Phase 7: End-to-End Kindle Paperwhite Hardware Verification
-- `[ ]` **Task 7.1: Full Dev Bake & KFX Sideload Smoke Test**
+- `[-]` **Task 7.1: Full Dev Bake & KFX Sideload Smoke Test**
   - **Action**: Run a complete book through the web UI using `AI_PROVIDER_MODE=openrouter_fallback`, export the compiled `.kfx`, sideload via USB-C to the Kindle Paperwhite `/documents` directory, and tap an injected `[?]` Cairn anchor.
   - **Verification Criterion**: Confirm the native Kindle bottom-sheet footnote popup card opens inline without navigating away from the active page.
