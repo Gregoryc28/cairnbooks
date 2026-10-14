@@ -51,11 +51,11 @@
 ---
 
 ## Phase 4: Bidirectional EPUB 3 DOM Injector & Calibre KFX Compiler
-- `[-]` **Task 4.1: Implement Bidirectional EPUB 3 Footnote Injector (`engine/core/dom_injector.py`)**
+- `[x]` **Task 4.1: Implement Bidirectional EPUB 3 Footnote Injector (`engine/core/dom_injector.py`)**
   - **Action**: Using `lxml.html` / `lxml.etree`, wrap the first mention of each approved entity per chapter in `<a id="ref-..." href="#note-..." epub:type="noteref" role="doc-noteref" class="cairn-anchor">` and append `<section epub:type="footnotes"><aside id="note-..." epub:type="footnote" role="doc-footnote">...<a href="#ref-..." role="doc-backlink">↩</a></aside></section>` plus subtle e-ink CSS.
   - **Verification Criterion**: Run `pytest engine/tests/test_dom_injector.py -v` asserting valid XML output, exact ID/href bidirectional matching, and presence of `epub:type="noteref"` and `epub:type="footnote"`.
 
-- `[x]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
+- `[-]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
   - **Action**: Wire together `epub_parser`, `lore_ledger`, `jev_client`, `synopsis_client`, `dom_injector`, and `kfx_compiler.py` (`ebook-convert`). Expose via `engine/cli.py` with `bake` and `inspect` commands supporting `--test-mode` and `--refresh-jev`.
   - **Verification Criterion**: Run `python engine/cli.py bake engine/tests/fixtures/sample_novel.epub --test-mode` and verify a valid enhanced `.epub` is written to `engine/data/outputs/`.
 
