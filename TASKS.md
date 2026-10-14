@@ -73,11 +73,11 @@
   - **Action**: Initialize `web/` with Next.js App Router, TypeScript, Tailwind CSS configured with the Risograph palette (`#FAF7F0`, `#121316`, `#FF4C38`, `#CEFF00`, `#E6E2D8`), hard-edge `4px 4px 0px #121316` shadows, `Fraunces` + `JetBrains Mono` typography, and Clerk authentication middleware.
   - **Verification Criterion**: Run `npm run build --prefix web && npx --prefix web tsc --noEmit` with zero errors.
 
-- `[-]` **Task 6.2: Build Stage 1 (`InkDropZone`) & Stage 2 (`PretextCanvas` + `SensitivityDial`)**
+- `[x]` **Task 6.2: Build Stage 1 (`InkDropZone`) & Stage 2 (`PretextCanvas` + `SensitivityDial`)**
   - **Action**: Implement the printing-press drag-and-drop uploader and the HTML5 Canvas component powered by Cheng Lou's **Pretext** (`@chenglou/pretext`) that streams `sentence_chunk` SSE events across the viewport and drops visual coral/lime pins on `cairn_dropped` events.
   - **Verification Criterion**: Run `npm run build --prefix web` and verify smooth 60fps canvas text layout rendering with mock SSE stream data.
 
-- `[ ]` **Task 6.3: Build Stage 3 (`ProofRibbon` + `KindleModalPreview`) & Stage 4 (`BakeExporter`)**
+- `[-]` **Task 6.3: Build Stage 3 (`ProofRibbon` + `KindleModalPreview`) & Stage 4 (`BakeExporter`)**
   - **Action**: Implement the interactive Proof Sheet ribbon allowing users to preview each Cairn inside a simulated Kindle Paperwhite bottom-sheet card, toggle redundant anchors off, and trigger one-click `.epub` / `.kfx` baking and download.
   - **Verification Criterion**: Run `npm run lint --prefix web && npm run build --prefix web` with zero warnings or type errors.
 

@@ -1,17 +1,191 @@
-import React from "react";
+"use client";
 
-const STAGES = [
-  { id: "01", label: "INK PLATE DROP", status: "READY" },
-  { id: "02", label: "PRETEXT STREAM & JEV GATE", status: "STANDBY" },
-  { id: "03", label: "PROOF SHEET RIBBON", status: "STANDBY" },
-  { id: "04", label: "EPUB 3 / KFX PRESS", status: "STANDBY" },
-] as const;
+import React, { useState } from "react";
+import { InkDropZone } from "@/components/InkDropZone";
+import { PretextCanvas } from "@/components/PretextCanvas";
+import { SensitivityDial } from "@/components/SensitivityDial";
+import { subscribeToScanStream, uploadBook } from "@/lib/api";
+import type {
+  BakeJobState,
+  CairnFootnote,
+  ScanProgressEvent,
+  SentenceChunkEvent,
+} from "@/lib/types";
+
+const DEMO_SENTENCES: SentenceChunkEvent[] = [
+  {
+    chapter_index: 0,
+    chapter_title: "Chapter One: The Siege Begins",
+    text: "The dawn broke crimson over the ramparts of Oakhaven. High Marshal Vasquez stood atop the north bastion, his scarred iron gauntlets resting upon the battlements.",
+  },
+  {
+    chapter_index: 1,
+    chapter_title: "Chapter Two: The Ashen Wastes",
+    text: "Three leagues beyond the river valley lay the silent expanse of the Ashen Wastes. Scout Jennifer trudged through grey dunes under a leaden sky.",
+  },
+  {
+    chapter_index: 2,
+    chapter_title: "Chapter Three: Archive of Whispers",
+    text: "Deep within the subterranean chambers of Morndun, Scholar Cheryl studied the ancient codices of the First Faction.",
+  },
+  {
+    chapter_index: 3,
+    chapter_title: "Chapter Four: The Battle of Red Ridge",
+    text: "High Marshal Vasquez charged into the breach at the head of five hundred armored cataphracts. His silver cloak billowed in the tempest.",
+  },
+  {
+    chapter_index: 4,
+    chapter_title: "Chapter Five: Council of the Spire",
+    text: "In the high chamber of the Spire, High Marshal Vasquez met with Chancellor Dennis and Scout Jennifer to draft terms after the Obsidian Banner retreated.",
+  },
+];
+
+const DEMO_CAIRNS: CairnFootnote[] = [
+  {
+    anchor_id: "cairn-high-marshal-vasquez-ch4",
+    entity_slug: "high-marshal-vasquez",
+    display_name: "Vasquez",
+    chapter_index: 3,
+    chapter_title: "Chapter Four: The Battle of Red Ridge",
+    paragraph_index: 1,
+    pages_absent: 45,
+    first_seen_chapter: 0,
+    last_seen_chapter: 0,
+    alignment: "ally",
+    jev_prob: 0.91,
+    jev_score: 5,
+    synopsis_text:
+      "Oakhaven garrison commander who ordered troops to hold the north bastion in Ch. 1.",
+    enabled: true,
+  },
+  {
+    anchor_id: "cairn-scout-jennifer-ch5",
+    entity_slug: "scout-jennifer",
+    display_name: "Jennifer",
+    chapter_index: 4,
+    chapter_title: "Chapter Five: Council of the Spire",
+    paragraph_index: 0,
+    pages_absent: 35,
+    first_seen_chapter: 1,
+    last_seen_chapter: 1,
+    alignment: "ally",
+    jev_prob: 0.86,
+    jev_score: 4,
+    synopsis_text:
+      "Wilderness scout who trekked across the grey dunes of the Ashen Wastes in Ch. 2.",
+    enabled: true,
+  },
+  {
+    anchor_id: "cairn-obsidian-banner-ch5",
+    entity_slug: "obsidian-banner",
+    display_name: "Obsidian Banner",
+    chapter_index: 4,
+    chapter_title: "Chapter Five: Council of the Spire",
+    paragraph_index: 1,
+    pages_absent: 48,
+    first_seen_chapter: 0,
+    last_seen_chapter: 0,
+    alignment: "adversary",
+    jev_prob: 0.89,
+    jev_score: 4,
+    synopsis_text:
+      "Besieging enemy legion surveyed by Commander Thorne outside Oakhaven's ramparts in Ch. 1.",
+    enabled: true,
+  },
+];
 
 export default function HomePage() {
+  const [minPageGap, setMinPageGap] = useState<number>(30);
+  const [jobState, setJobState] = useState<BakeJobState | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [sentenceChunks, setSentenceChunks] = useState<SentenceChunkEvent[]>(
+    []
+  );
+  const [droppedCairns, setDroppedCairns] = useState<CairnFootnote[]>([]);
+  const [progress, setProgress] = useState<ScanProgressEvent | null>(null);
+  const [selectedCairn, setSelectedCairn] = useState<CairnFootnote | null>(
+    null
+  );
+
+  const handleFileUpload = async (file: File) => {
+    setErrorMessage(null);
+    setIsUploading(true);
+    setSentenceChunks([]);
+    setDroppedCairns([]);
+    setProgress(null);
+
+    try {
+      const createdJob = await uploadBook(file, minPageGap);
+      setJobState(createdJob);
+      setIsUploading(false);
+      setIsScanning(true);
+
+      subscribeToScanStream(createdJob.job_id, {
+        onSentenceChunk: (chunk) => {
+          setSentenceChunks((prev) => [...prev, chunk]);
+        },
+        onCairnDropped: (footnote) => {
+          setDroppedCairns((prev) => [...prev, footnote]);
+          setSelectedCairn(footnote);
+        },
+        onProgress: (prog) => {
+          setProgress(prog);
+        },
+        onComplete: (done) => {
+          setIsScanning(false);
+          setJobState((prev) =>
+            prev ? { ...prev, phase: done.phase } : prev
+          );
+        },
+        onError: () => {
+          setIsScanning(false);
+          setErrorMessage(
+            "SSE stream interrupted. Ensure the FastAPI server is running on port 8000."
+          );
+        },
+      });
+    } catch (err) {
+      setIsUploading(false);
+      setIsScanning(false);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to upload EPUB."
+      );
+    }
+  };
+
+  const handleRunSyntheticDemo = () => {
+    setErrorMessage(null);
+    setSentenceChunks([]);
+    setDroppedCairns([]);
+    setIsScanning(true);
+
+    DEMO_SENTENCES.forEach((chunk, index) => {
+      window.setTimeout(() => {
+        setSentenceChunks((prev) => [...prev, chunk]);
+        setProgress({
+          scanned_chapters: index + 1,
+          total_chapters: DEMO_SENTENCES.length,
+          entities_tracked: 9,
+          anchors_placed: index >= 3 ? index - 1 : 0,
+        });
+        if (index === 3) {
+          setDroppedCairns([DEMO_CAIRNS[0]]);
+          setSelectedCairn(DEMO_CAIRNS[0]);
+        } else if (index === 4) {
+          setDroppedCairns(DEMO_CAIRNS);
+          setSelectedCairn(DEMO_CAIRNS[1]);
+          setIsScanning(false);
+        }
+      }, index * 260);
+    });
+  };
+
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-6xl space-y-6 px-6 py-10">
       {/* Broadsheet Masthead */}
-      <header className="riso-card mb-8 bg-newsprint p-6">
+      <header className="riso-card bg-newsprint p-6">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-ink pb-4">
           <div className="flex items-center gap-3">
             <span className="inline-block border-2 border-ink bg-coral px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-widest text-newsprint shadow-riso-sm">
@@ -38,28 +212,61 @@ export default function HomePage() {
             </p>
           </div>
           <div className="border-2 border-ink bg-halftone px-4 py-3 font-mono text-xs">
-            <div>TIER 1: TYPESAFE JEV / OPENROUTER</div>
-            <div>TIER 2: MICRO-LLM (&lt;= 15 WORDS)</div>
+            <div>
+              BOOK: {jobState ? jobState.book_title : "THE SIEGE OF OAKHAVEN"}
+            </div>
+            <div>
+              PHASE: {jobState ? jobState.phase : isScanning ? "SCANNING" : "READY"}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* 4-Stage Compiler Registration Strip */}
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        {STAGES.map((stage) => (
-          <div key={stage.id} className="riso-card bg-newsprint p-4">
-            <div className="flex items-center justify-between font-mono text-xs font-bold">
-              <span className="border border-ink bg-lime px-1.5 py-0.5">
-                STAGE {stage.id}
-              </span>
-              <span className="text-ink/70">{stage.status}</span>
-            </div>
-            <h2 className="mt-3 font-mono text-sm font-bold uppercase tracking-wide">
-              {stage.label}
-            </h2>
+      {/* Stage 1 + Sensitivity Dial */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <InkDropZone
+            onFileSelected={handleFileUpload}
+            onRunSyntheticDemo={handleRunSyntheticDemo}
+            isUploading={isUploading}
+            errorMessage={errorMessage}
+          />
+        </div>
+        <div className="lg:col-span-5">
+          <SensitivityDial
+            value={minPageGap}
+            onChange={setMinPageGap}
+            disabled={isUploading || isScanning}
+          />
+        </div>
+      </div>
+
+      {/* Stage 2: Cheng Lou Pretext Kinetic Stream */}
+      <PretextCanvas
+        sentenceChunks={sentenceChunks}
+        droppedCairns={droppedCairns}
+        progress={progress}
+        isScanning={isScanning}
+        onSelectCairn={setSelectedCairn}
+      />
+
+      {selectedCairn && (
+        <div className="riso-card flex flex-wrap items-center justify-between gap-4 bg-halftone p-4 font-mono text-xs">
+          <div>
+            <span className="border border-ink bg-lime px-2 py-0.5 font-bold">
+              ACTIVE CAIRN PIN
+            </span>{" "}
+            <strong className="ml-2 uppercase">
+              {selectedCairn.display_name}
+            </strong>{" "}
+            ({selectedCairn.chapter_title} • {selectedCairn.pages_absent}p
+            absent)
           </div>
-        ))}
-      </section>
+          <div className="font-serif text-sm italic">
+            &ldquo;{selectedCairn.synopsis_text}&rdquo;
+          </div>
+        </div>
+      )}
     </main>
   );
 }
