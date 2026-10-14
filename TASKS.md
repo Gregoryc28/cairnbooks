@@ -12,14 +12,14 @@
 
 ## Phase 0: Architecture & Product Decisions (Baseline)
 - `[x]` **Task 0.1**: Finalize product name (**CairnBooks**) and core value proposition (automated spoiler-free EPUB 3 / Kindle Paperwhite KFX footnote popups).
-- `[x]` **Task 0.2**: Define Two-Tier Hybrid AI pipeline (Tier 1 Jev discriminative filter with OpenRouter dev fallback + Tier 2 OpenRouter free micro-LLM for 15-word synopses)[cite: 4, 6].
+- `[x]` **Task 0.2**: Define Two-Tier Hybrid AI pipeline (Tier 1 Jev discriminative filter with OpenRouter dev fallback + Tier 2 OpenRouter free micro-LLM for 15-word synopses).
 - `[x]` **Task 0.3**: Lock in "Living Risograph" aesthetic system (`#FAF7F0` newsprint, `#121316` ink, `#FF4C38` coral, `#CEFF00` acid lime, Cheng Lou Pretext canvas) and 4-stage UX flow.
 
 ---
 
 ## Phase 1: Repository Scaffolding & Configuration
 - `[-]` **Task 1.1: Initialize Backend Directory, `config.py`, and `.env.example`**
-  - **Action**: Create `engine/` package structure, `engine/requirements.txt`, `engine/conftest.py`, `.env.example`, and `engine/config.py` loading environment variables, thresholds (`JEV_REINTRO_PROB_THRESHOLD = 0.70`, `JEV_REFRESHER_SCORE_MIN = 3`, `DEFAULT_MIN_PAGE_GAP = 30`), and auto-creating `data/jobs`, `data/outputs`, and `data/jev_cache` directories[cite: 1, 5, 6, 7].
+  - **Action**: Create `engine/` package structure, `engine/requirements.txt`, `engine/conftest.py`, `.env.example`, and `engine/config.py` loading environment variables, thresholds (`JEV_REINTRO_PROB_THRESHOLD = 0.70`, `JEV_REFRESHER_SCORE_MIN = 3`, `DEFAULT_MIN_PAGE_GAP = 30`), and auto-creating `data/jobs`, `data/outputs`, and `data/jev_cache` directories.
   - **Verification Criterion**: Run `python -c "import engine.config as c; assert c.JEV_CACHE_DIR.exists(); print('Config OK')"` and confirm exit code `0`.
 
 - `[ ]` **Task 1.2: Define Core Pydantic v2 Schemas (`engine/models/schemas.py`)**
@@ -41,7 +41,7 @@
 
 ## Phase 3: Tier 1 (Jev + OpenRouter Fallback) & Tier 2 (Synopsis) Clients
 - `[ ]` **Task 3.1: Build Tier 1 `JevClient` with OpenRouter Dev Fallback & DiskCache (`engine/clients/jev_client.py`)**
-  - **Action**: Implement `JevClient.evaluate_candidate(candidate, force_eval=False)`. Support `AI_PROVIDER_MODE=openrouter_fallback` (JSON schema response) and `AI_PROVIDER_MODE=jev` (native `/v1/evaluate`), backed by `diskcache` in `JEV_CACHE_DIR`[cite: 1, 6] and `MockJevClient` for `--test-mode`[cite: 2].
+  - **Action**: Implement `JevClient.evaluate_candidate(candidate, force_eval=False)`. Support `AI_PROVIDER_MODE=openrouter_fallback` (JSON schema response) and `AI_PROVIDER_MODE=jev` (native `/v1/evaluate`), backed by `diskcache` in `JEV_CACHE_DIR` and `MockJevClient` for `--test-mode`.
   - **Verification Criterion**: Run `pytest engine/tests/test_jev_client.py -v` verifying mock mode, OpenRouter payload formatting, Jev native payload formatting, and deterministic cache hits.
 
 - `[ ]` **Task 3.2: Build Tier 2 `SynopsisClient` for 15-Word Footnote Generation (`engine/clients/synopsis_client.py`)**
@@ -56,7 +56,7 @@
   - **Verification Criterion**: Run `pytest engine/tests/test_dom_injector.py -v` asserting valid XML output, exact ID/href bidirectional matching, and presence of `epub:type="noteref"` and `epub:type="footnote"`.
 
 - `[ ]` **Task 4.2: Implement Pipeline Orchestrator, KFX Wrapper & Typer CLI (`engine/core/pipeline.py`, `engine/cli.py`)**
-  - **Action**: Wire together `epub_parser`, `lore_ledger`, `jev_client`, `synopsis_client`, `dom_injector`, and `kfx_compiler.py` (`ebook-convert`). Expose via `engine/cli.py` with `bake` and `inspect` commands supporting `--test-mode` and `--refresh-jev`[cite: 2].
+  - **Action**: Wire together `epub_parser`, `lore_ledger`, `jev_client`, `synopsis_client`, `dom_injector`, and `kfx_compiler.py` (`ebook-convert`). Expose via `engine/cli.py` with `bake` and `inspect` commands supporting `--test-mode` and `--refresh-jev`.
   - **Verification Criterion**: Run `python engine/cli.py bake engine/tests/fixtures/sample_novel.epub --test-mode` and verify a valid enhanced `.epub` is written to `engine/data/outputs/`.
 
 ---

@@ -36,3 +36,6 @@ Thumbs.db
 # Agent/Tool cache & logs
 *.log
 .agent/
+
+# CairnBooks runtime data
+engine/data/
